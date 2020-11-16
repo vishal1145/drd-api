@@ -1,0 +1,457 @@
+var mongo = require('mongodb');
+var User   = require('../app/models/user');
+var jwt         = require('jwt-simple');
+var config      = require('../config/database'); 
+var Departments        = require('../app/models/departments'); 
+var randomstring = require("randomstring");
+var Trip        = require('../app/models/trip');
+var Transactions        = require('../app/models/transactions'); 
+ var Id     = require('../app/models/id');
+//var cc = require('coupon-code');
+//var Category        = require('../app/models/category'); // get the mongoose model
+            var ses = require('node-ses')
+  , client = ses.createClient({ key: 'AKIAIU3WW5LJIXFEPR6Q', secret: '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' });
+//var sendgrid  = require('sendgrid')("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");
+
+exports.signup = function(req, res)  {
+    console.log(req.body);
+  if (!req.body.fullName  || !req.body.contactNum || !req.body.emailId  ) {
+    res.json({success: false, msg: 'Please check the parameters.'});
+  } 
+    else{
+        
+      //  var newUser =new User(req.body);
+        var user=req.body;
+              //  var hodId="";
+        if (req.body.clientId=="general")
+            {
+                user.accessLevelName="basic";
+            }
+         if (!(req.body.clientId==null || req.body.clientId==""))
+             {
+                 user.clientName=req.body.clientId.clientName;
+             }
+        if (!(req.body.departmentId==null || req.body.departmentId==""))
+            {
+                if(req.body.password==null || req.body.password=="")
+                    {
+                        user.password=randomstring.generate(5);
+                    }
+                      
+                
+                        Departments.find({ '_id': req.body.departmentId },function(err, departments) {
+
+            // if there is an error retrieving, send the error. nothing after res.send(err) will execute
+            if (err)
+            {
+                res.send(err);
+            }
+    
+                     
+                        user.hodId=departments[0].hodId;
+                            
+                        user.departmentName=departments[0].departmentName;
+                       
+                        var newUser =new User(user);
+            
+              newUser.save(function(err,obj) 
+                           {
+     
+                  if (err) 
+      
+                {
+                  console.log(err);
+                    return res.json({success: false, msg: "User Name Already Exists"});
+        
+                }
+              else {
+                    if(user.accessLevelName=='hod')
+                            {
+                                     Departments.update({_id: req.body.departmentId}, {
+                                        hodId: obj._id,hodName:obj.fullName
+                                    }, function(err, numberAffected, rawResponse) {
+                                       //handle it
+                                                if(err){
+                                                res.json({success: false,msg:'No such departmentId'});
+                                                throw err;
+                                            }
+                                                else{
+                                                    //res.json({success: true,msg:'department updated successfully'});
+                                                    console.log("department updated");
+                                                }
+                                    });
+                                Trip.update({'hodId':user.hodId}, {'hodId':obj._id}, { multi: true }, function(err, raw) {
+   //handle it
+            if(err){
+                console.log("failed to update");
+            
+			throw err;
+		}
+            else{
+                console.log(" updated");
+            }
+});
+                                Transactions.update({'hodId':user.hodId}, {$set: {'hodId':obj._id}}, { multi: true }, function(err, numberAffected, rawResponse) {
+   //handle it
+            if(err){
+                console.log("failed to update");
+            
+			throw err;
+		}
+            else{
+                console.log(" updated");
+            }
+});
+                                 User.update({'hodId':user.hodId}, {$set: {'hodId':obj._id}}, { multi: true }, function(err, numberAffected, rawResponse) {
+   //handle it
+            if(err){
+                console.log("failed to update");
+            
+			throw err;
+		}
+            else{
+                console.log(" updated");
+            }
+});
+                                
+                                User.update({'_id':obj._id}, {$set: {'hodId':obj._id}}, { multi: true }, function(err, numberAffected, rawResponse) {
+   //handle it
+            if(err){
+                console.log("failed to update");
+            
+			throw err;
+		}
+            else{
+                console.log(" updated");
+            }
+});
+                               
+                            
+                            
+                            }
+                    var token = jwt.encode(obj, config.secret);
+                
+                  res.json({success: true, token: 'JWT ' + token,msg: 'Successful created new user.',user:obj});
+                  
+                   var transid= new Id({_id:"transactions"+obj._id,seq:0,userId:obj._id});
+                  
+                        transid.save(function(err,obj) 
+                                               {
+                                                    if (err) 
+
+                                                    {
+                                                      console.log(err);
+                                                        //return res.json({success: false, msg: "failed to add expense heads"});
+                                                    }
+                                                   console.log("Created ID");
+                                                });
+                    var tripid= new Id({_id:"trips"+obj._id,seq:0,userId:obj._id});
+                  
+                        tripid.save(function(err,obj) 
+                                               {
+                                                    if (err) 
+
+                                                    {
+                                                      console.log(err);
+                                                        //return res.json({success: false, msg: "failed to add expense heads"});
+                                                    }
+                                                   console.log("Created ID");
+                                                });
+                  client.sendEmail({
+                           to: user.emailId
+                         , from: 'info@travexio.com'
+                         , cc: ''
+
+                         , subject: 'Travexio-Successfully Registered'
+                         , message: 'Hey '+user.fullName+', Thanks for registering <br> Here is your  password '+ user.password+' & pls donnot share it with anyone, <br> Thanks,<br><br> Travexio <br> Team, Travexio'
+                         , altText: 'plain text'
+                        }, function (err, data, res) {
+
+                            if (err){
+                                console.log(err);
+                            }
+                            else{
+                                console.log(data);
+                            }
+ // ...
+                            });
+              }
+              
+              
+        
+    });
+        
+          
+        });
+            }
+        else{
+             if(req.body.password==null || req.body.password=="")
+                    {
+                        user.password=randomstring.generate(5);
+                    }
+            
+            var newUser =new User(user);
+             newUser.save(function(err,obj) {
+      if (err) {
+                  console.log(err);
+                    return res.json({success: false, msg: "User Name Already Exists"});
+        
+                }
+              else {
+                    var token = jwt.encode(obj, config.secret);
+                
+                    res.json({success: true, token: 'JWT ' + token,msg: 'Successful created new user.',user:obj});
+                    var transid= new Id({_id:"transactions"+obj._id,seq:0,userId:obj._id});
+                  
+                        transid.save(function(err,obj) 
+                                               {
+                                                    if (err) 
+
+                                                    {
+                                                      console.log(err);
+                                                        //return res.json({success: false, msg: "failed to add expense heads"});
+                                                    }
+                                                   console.log("Created ID");
+                                                });
+                    var tripid= new Id({_id:"trips"+obj._id,seq:0,userId:obj._id});
+                  
+                        tripid.save(function(err,obj) 
+                                               {
+                                                    if (err) 
+
+                                                    {
+                                                      console.log(err);
+                                                        //return res.json({success: false, msg: "failed to add expense heads"});
+                                                    }
+                                                   console.log("Created ID");
+                                                });
+                  client.sendEmail({
+                           to: user.emailId
+                         , from: 'info@travexio.com'
+                         , cc: ''
+
+                         , subject: 'Travexio-Successfully Registered'
+                         , message: '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Travexio</title><link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet"></head><body style="margin: 0px;padding: 0px;text-align: center;font-family: "Roboto", sans-serif;background-color: #ffffff;"><div id="wrapper" style="width: 700px;height: 500px;margin: 0 auto;"><div class="top_bg" style="width: 640px;height: auto;float: left;background-color: #ffffff;padding: 10px 30px;"><div class="logo" style="width: 320px;float: left;margin-top: 13px;"><img src="http://res.cloudinary.com/dhxplfq7g/image/upload/v1489379240/logo_b2vums.png" style="float: left;"> </div><!--end of logo--><div class="top_text" style="width: 320px;float: left;"><h3 style="color: #808080;font-family: "Roboto", sans-serif;font-size: 30px;float: right;text-align: right;font-weight: normal;margin-bottom: 2px;">Thanks for Registering</h3></div><!--end of top_text--></div><!--end of top_bg--><div class="gray_border" style="margin: 2px 50px 5px;width: 600px;float: left;"></div><!--end of gray_border--><div class="blue_border" style="width: 640px;margin: 2px 30px;float: left;border-bottom: 3px solid #02a8f4;"></div><!--end of blue_border--><div class="top_msg" style="width: 640px;padding: 5px 30px;float: left;"><h2 style="color: #000000;font-family: "Roboto", sans-serif;font-size: 14px;font-weight: bold;text-align: left;margin-bottom: 3px;">Hi '+user.fullName+' ,</h2><p style="color: #6d6d6d;font-family: "Roboto", sans-serif;font-size: 14px;text-align: left;margin-top: 2px;margin-bottom: 0px;"> Here is your  password '+ user.password+' & pls donnot share it with anyone, <br> Thanks,<br><br> Travexio <br> Team, Travexio</p></div><!--end of top_msg--><div class="last_part" style="width: 640px;padding: 6px 30px;float: left;"><p style="color: #6d6d6d;font-family: "Roboto", sans-serif;font-size: 14px;text-align: left;">If you are unable to view above e-mailer, please <a href="#" style="color: #373736;font-family: "Roboto", sans-serif;font-size: 14px;text-align: left;">Click Here</a><br></p><p style="color: #6d6d6d;font-family: "Roboto", sans-serif;font-size: 14px;text-align: left;">This email address was given to us by you or by one of our customers. If you feel that you have received this email in error, Please send an email to support@travexio.com</p> </div><!--end of last_part--> </div><!--end of wrapper--></body>'
+                         , altText: 'plain text'
+                        }, function (err, data, res) {
+
+                            if (err){
+                                console.log(err);
+                            }
+                            else{
+                                console.log(data);
+                            }
+ // ...
+                            });
+              }
+              
+              
+        
+    });
+            
+            
+        }
+        
+        
+        }
+};
+ 
+// route to authenticate a user (POST http://localhost:8080/api/authenticate)
+exports.login = function(req, res)  {
+  if(req.body.contactNum)
+      {
+          
+         // console.log(req.body.mobile);
+    User.findOne({
+    contactNum: req.body.contactNum
+  }, function(err, user) {
+    if (err) {
+    {
+      res.json({success: false, msg: 'Please check parameters.'});
+    }
+    
+    }
+ 
+    if (!user) {
+      res.json({success: false, msg: 'Authentication failed. User not found.'});
+    } else {
+      // check if password matches
+      user.comparePassword(req.body.password, function (err, isMatch) {
+        if (isMatch && !err) {
+          // if user is found and password is right create a token
+          var token = jwt.encode(user, config.secret);
+          // return the information including token as JSON
+          res.json({success: true, token: 'JWT ' + token,msg:"Sucessfully Logged in",user:user});
+        } else {
+          res.json({success: false, msg: 'Authentication failed. Wrong password.'});
+        }
+      });
+    }
+  });
+      }
+   else if(req.body.emailId)
+      {
+          // console.log(req.body.email);
+    User.findOne({
+    email: req.body.emailId
+  }, function(err, user) {
+    if (err) throw err;
+ 
+    if (!user) {
+      res.json({success: false, msg: 'Authentication failed. User not found.'});
+    } else {
+      // check if password matches
+      user.comparePassword(req.body.password, function (err, isMatch) {
+        if (isMatch && !err) {
+          // if user is found and password is right create a token
+          var token = jwt.encode(user, config.secret);
+          // return the information including token as JSON
+          res.json({success: true, token: 'JWT ' + token,msg:"Sucessfully Logged in",userId:user.id});
+        } else {
+          res.json({success: false, msg: 'Authentication failed. Wrong password.'});
+        }
+      });
+    }
+  });
+      }
+    else{
+        res.json({success: false, msg: 'Parameters Missing.'});
+    }
+};
+
+//forgot password api
+exports.forgot=function(req, res) {
+    
+    if(req.body.emailId){
+     User.findOne({ emailId: req.body.emailId }, function(err, user) {
+         
+         if(!user){
+             res.json({success: false, msg: 'No user with this email id exist'});
+         }
+         
+         else{
+             
+         var randomstring = require("randomstring");
+ 
+         var pass = randomstring.generate(7);
+             
+             user.password=pass;
+         
+             
+             user.save(function(err,user){
+                 
+             
+             User.update({ _id:user._id }, { $set: { password:user.password}}, function (err, user){if (err) throw err;});
+
+        }); 
+        
+         
+
+
+// Give SES the details and let it construct the message for you.
+client.sendEmail({
+   to: user.emailId
+ , from: 'info@travexio.com'
+ , cc: ''
+
+ , subject: 'Travexio-New password'
+ , message: 'Hey '+user.fullName+', <br> Here is your new password '+pass+' & pls donnot share it with anyone, <br> Thanks,<br><br> Travexio <br> Team, Travexio'
+ , altText: 'plain text'
+}, function (err, data, res) {
+    
+    if (err){
+        console.log(err);
+    }
+    else{
+        console.log(data);
+    }
+ // ...
+});
+         }
+        
+     });
+    }
+    if(req.body.contactNum)
+        {
+            User.findOne({ contactNum: req.body.contactNum }, function(err, user) {
+         
+         if(!user){
+             res.json({success: false, msg: 'No user with this mobile number exist'});
+         }
+         
+         else{
+             
+         var randomstring = require("randomstring");
+ 
+         var pass = randomstring.generate(7);
+             
+             user.password=pass;
+         
+             
+             user.save(function(err,user){
+                 
+             
+             User.update({ _id:user._id }, { $set: { password:user.password}}, function (err, user){if (err) throw err;});
+//              user.save(function (err) {
+//    if (err) throw(err);
+
+//  });
+        }); 
+        
+         client.sendEmail({
+                           to: user.emailId
+                         , from: 'info@travexio.com'
+                         , cc: ''
+
+                         , subject: 'Travexio-New password'
+                         , message: 'Hey '+user.fullName+', <br> Here is your new password '+pass+' & pls donnot share it with anyone, <br> Thanks,<br><br> Travexio <br> Team, Travexio'
+                         , altText: 'plain text'
+                            }, function (err, data, res) {
+    
+                            if (err){
+                                console.log(err);
+                            }
+                            else{
+                                console.log(data);
+                            }
+                         // ...
+                        });
+    
+  
+
+         }
+        
+     });
+        }
+    else{
+        
+          res.json({success: false,msg:'No email Id or mobile given'});
+    }
+    };
+
+exports.memberinfo = function(token,userId) {
+ // var token = getToken(req.headers);
+  if (token) {
+    var decoded = jwt.decode(token, config.secret);
+
+      if(decoded._id==userId){
+          return true;
+      }
+      else
+          return false;
+ 
+
+};
+};
+getToken = function (headers) {
+  if (headers && headers.authorization) {
+    var parted = headers.authorization.split(' ');
+    if (parted.length === 2) {
+      return parted[1];
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};

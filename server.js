@@ -127,8 +127,8 @@ app.use(morgan('dev'));
   next();
 });
 
-mongoose.connect(config.database);
-// mongoose.connect("mongodb://root:EmyVfyP9pFZB@localhost/exp?authSource=admin", {useNewUrlParser: true});
+// mongoose.connect(config.database);
+mongoose.connect("mongodb://root:EmyVfyP9pFZB@localhost/exp?authSource=admin", {useNewUrlParser: true});
 // pass passport for configuration
 
 route = require('./routes/routes');
@@ -701,7 +701,9 @@ apiRoutes.post( '/createSlot',  function( req, res, next ) {
                     res.json({success:false,data:err});
                 }
                 else{
-                    res.json({success:true,data:slotData});
+                    if(i==slotArr.length-1){
+                        res.json({success:true,data:slotData});
+                    }    
                 }
             });  
         }

@@ -11,21 +11,45 @@ var UserSchema = new Schema({
     { 
         type : Date, default: Date.now 
     },
-    fullName:{
+  
+    patientFirstName: {
+        type: String,
+       
+    },
+    patientMiddleName: {
+        type: String,
+       
+    },
+    patientLastName: {
+        type: String,
+       
+    },
+    token: {
+        type: String,
+       
+    },
+    patientAddress:{
         type: String,
     },
-    password:{
-        type: String,
-    },
-    clientId:{
-        type: String,
-    },
-    employeeAddress:{
-        type: String,
-    },
-
     emailId:{
         type: String,    
+    },
+    
+    patientHealthid:{
+        type: Number,
+    },
+    patientZipcode:{
+        type: Number,
+    },
+    patientGender:{
+        type: String,
+    },
+    patientDob:{
+        type: String,
+    },
+    password: {
+        type: String,
+       
     },
     contactNum: {
         type: Number

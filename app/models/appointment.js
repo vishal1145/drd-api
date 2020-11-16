@@ -22,9 +22,17 @@ var AppointmentSchema = new Schema({
     patientId:{
         type:String
     },
-    patientName: 
-    {
-        type:String
+    patientFirstName: {
+        type: String,
+       
+    },
+    patientMiddleName: {
+        type: String,
+       
+    },
+    patientLastName: {
+        type: String,
+       
     },
     patientMobile:
     {

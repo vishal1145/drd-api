@@ -55,8 +55,15 @@ var PrescriptionSchema = new Schema({
     {
         type:Number
     },
-    
-    patientName: 
+    patientFirstName: 
+    {
+        type:String
+    },
+    patientMiddleName: 
+    {
+        type:String
+    },
+    patientLastName: 
     {
         type:String
     },
@@ -77,6 +84,7 @@ var PrescriptionSchema = new Schema({
     medicineTime:{
         type:String,
     },
+    medicineName:[],
     created_at: 
     {
         type:Date,

@@ -9,6 +9,10 @@ var DoctorSchema = new Schema({
     {
        type: String 
     },
+    token :
+    {
+       type: String 
+    },
     doctorName:
     {
         type:String,
