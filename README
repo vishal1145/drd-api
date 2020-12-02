@@ -1,9 +1,0 @@
-Build Image
-
-    docker build -t asia.gcr.io/<project-name>/backend-api:0.0.5 .
-
-Push Image
-
-    docker push asia.gcr.io/<project-name>/backend-api:0.0.5
-
-Apply new image to Deployment

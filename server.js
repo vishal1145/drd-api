@@ -127,8 +127,21 @@ app.use(morgan('dev'));
   next();
 });
 
+const PORT = 5000;      
+
+const dbURI = 'mongodb://root:zxcv1990@localhost:27017/doctor?authSource=admin';
+
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex:true ,useFindAndModify: false})
+    .then((result) => {
+        app.listen(PORT,() => {
+            console.log("Application Started in Port " + PORT)
+        })
+    })
+    .catch((err) => console.log(err));
+
+
 // mongoose.connect(config.database);
-mongoose.connect("mongodb://root:EmyVfyP9pFZB@localhost/exp?authSource=admin", {useNewUrlParser: true});
+// mongoose.connect("mongodb://root:EmyVfyP9pFZB@localhost/exp?authSource=admin", {useNewUrlParser: true});
 // pass passport for configuration
 
 route = require('./routes/routes');
@@ -1159,8 +1172,8 @@ apiRoutes.post( '/getPrescription',  function( req, res, next ) {
  apiRoutes.post('/signupDoctor', route.signupDoctor);
  apiRoutes.post('/loginDoctor', route.loginDoctor);
 // Start the server
-app.listen(port);
+// app.listen(port);
 
-console.log('Server is running at  http://localhost:' + port);        
+// console.log('Server is running at  http://localhost:' + port);        
         
         
