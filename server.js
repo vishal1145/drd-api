@@ -1,7 +1,7 @@
 var express     = require('express');
 var app         = express();
 var bodyParser  = require('body-parser');
-var baseUrl ="https://trippernew.s3.ap-south-1.amazonaws.com/" ;
+// var baseUrl ="https://trippernew.s3.ap-south-1.amazonaws.com/" ;
 var morgan      = require('morgan');
 var mongoose    = require('mongoose');
 var methodOverride = require('method-override')
@@ -35,23 +35,23 @@ app.use(cors());
 //multer
 
 var multer = require( 'multer' );
-var s3 = require( 'multer-storage-s3' );
-var storage = s3({
-    destination : function( req, file, cb ) {
+// var s3 = require( 'multer-storage-s3' );
+// var storage = s3({
+//     destination : function( req, file, cb ) {
         
-        cb( null, '' );
+//         cb( null, '' );
         
-    },
-    filename    : function( req, file, cb ) {
+//     },
+//     filename    : function( req, file, cb ) {
         
-        cb( null, randomstring.generate() +path.extname(file.originalname) );
+//         cb( null, randomstring.generate() +path.extname(file.originalname) );
 
         
-    },
-    bucket      : 'trippernew',
-    region      : 'ap-south-1'
-});
-var uploadMiddleware = multer({ storage: storage });
+//     },
+//     bucket      : 'trippernew',
+//     region      : 'ap-south-1'
+// });
+// var uploadMiddleware = multer({ storage: storage });
 
 
 
@@ -129,8 +129,8 @@ app.use(morgan('dev'));
 
 const PORT = 5000;      
 
-const dbURI = 'mongodb://root:zxcv1990@localhost:27017/doctor?authSource=admin';
-
+// const dbURI = 'mongodb://root:zxcv1990@localhost:27017/doctor?authSource=admin';
+const dbURI = 'mongodb://root:aRNs9qf6mFsk@https://staging.doctorsday.app/doctorsday?authSource=admin';
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex:true ,useFindAndModify: false})
     .then((result) => {
         app.listen(PORT,() => {
@@ -224,7 +224,7 @@ apiRoutes.post('/getSearchTerm', function(req, res){
 
 //add doctor api
 
-apiRoutes.post( '/addDoctor', uploadMiddleware.single('attachment'), function( req, res, next ) {
+apiRoutes.post( '/addDoctor', function( req, res) {
     var token = getToken(req.headers);
     var userId=req.body.userId;
     var doctor = req.body;
