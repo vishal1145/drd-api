@@ -1,14 +1,13 @@
 var express     = require('express');
 var app         = express();
 var bodyParser  = require('body-parser');
-// var baseUrl ="https://trippernew.s3.ap-south-1.amazonaws.com/" ;
+
 var morgan      = require('morgan');
 var mongoose    = require('mongoose');
 var methodOverride = require('method-override')
 var cors = require('cors');
 var config      = require('./config/database'); // get db config file
-require('dotenv').config();
-require( 'dotenv' ).load();
+
 var path = require('path');
 var port        = process.env.PORT || 80;
 var Doctor        = require('./app/models/doctor');
@@ -35,23 +34,7 @@ app.use(cors());
 //multer
 
 var multer = require( 'multer' );
-// var s3 = require( 'multer-storage-s3' );
-// var storage = s3({
-//     destination : function( req, file, cb ) {
-        
-//         cb( null, '' );
-        
-//     },
-//     filename    : function( req, file, cb ) {
-        
-//         cb( null, randomstring.generate() +path.extname(file.originalname) );
 
-        
-//     },
-//     bucket      : 'trippernew',
-//     region      : 'ap-south-1'
-// });
-// var uploadMiddleware = multer({ storage: storage });
 
 
 
